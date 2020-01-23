@@ -1,2 +1,6 @@
 # stat-361
-STAT-361, Linear Models
+STAT-361
+Linear Models
+
+FALL 2019
+
