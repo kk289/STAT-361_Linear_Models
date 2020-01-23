@@ -165,7 +165,6 @@ summary(fit5)
 
  \begin{align}\mu\{\text{log(WorldGross)}|\text{Budget},\text{log(OpeningWeekend)}\}
 = 2.283746 +0.007003 * Budget + 0.658244 * log(OpeningWeekend)\end{align}
->>>>>>> 0f486f6209a1c564f9e430634b925749080553ae
 
 ## Conclusion
   After conducting the complete analysis of the data, we reached to our conclusion that, our model "fit5" in which response variable WorldGross and predictor variable OpeningWeekend are logged, is better in predicitng the financial success of the movies, based upon the variables Budget and OpeningWeekend. In our final model "fit5", predictor variables, log of OpeningWeekend and Budget explained about 81.24 % variability in reponse variable, log of WorldGross. Over the time of the analysis, we realized that there were other variables in the dataset which were excluded during the analysis. There might have been some kind of interaction effect between those variables which we were not able to conduct within the given time frame of project. We would have came up with better model if we were able to do so. However, in the conducted analysis, we found model "fit5" better in predicting our response.
