@@ -1,0 +1,214 @@
+---
+title: "STAT 361-R Review"
+author: "Dr. Weber"
+output: 
+  ioslides_presentation:
+    smaller: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(nycflights13)
+```
+
+## Basic R
+
+Remember some of the basics when it comes to `R`:
+
+- Install/loading a package for use
+- Using `c()` to create a vector
+- Utilizing the help page when you can't remember the syntax (also `?`)
+- Using `<-` to assign values to variables
+- Subsetting a object in `R`
+
+## Data Visualization
+
+Data visualization will be quite important with linear models. You will need to use this visualization in order to check certain assumptions. To do visualization, we can use the `ggplot2` package, which is automatically loaded with the `tidyverse` package. 
+
+Recall the template for graphing:
+
+```{r template, eval=FALSE}
+ggplot(data = <DATA>) +
+  <GEOM_FUNCTION>(mapping = aes(<MAPPINGS>))
+```
+
+Inside of the `ggplot2` package is a dataset called `mpg`. Before we graph parts of `mpg`, let's get a look at it.
+
+## {.smaller}
+
+The first thing we might want to do is to get a sense of what's in `mpg`. We can do this via `summary()`:
+
+```{r summary}
+summary(mpg)
+```
+
+## Data Exploration
+
+We can also use
+
+```{r head}
+head(mpg)
+```
+
+## Data Exploration
+
+Or get basic structural information:
+
+```{r str}
+str(mpg)
+```
+
+## Back to Visualization
+
+Now that we have an idea of what `mpg` has, we can begin graphing. Let's get a scatterplot of highway miles per gallon vs. the engine displacement.
+
+```{r graph, fig.height=4}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy))
+```
+
+##
+
+We can also add various aspects to our graph. For example,
+
+```{r graph-2, fig.height=5}
+ggplot(data = mpg) +
+  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+```
+
+## Exercises
+
+1. Create a scatterplot of city miles per gallon vs. displ
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = cty, y=displ))+ labs(title = "Phil's Graph")
+
+```
+
+2. Color the dots based on the type of drive it is (i.e., `drv`)
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x = cty, y=displ,color=class))+ labs(title = "Phil's Graph")
+```
+3. On top of the scatterplot, map a smooth curve to the data for each value of the `drv` variable.
+```{r}
+ggplot(data = mpg) + geom_point(mapping = aes(x =displ, y=cty,color=class)) + geom_smooth(mapping = aes(x=displ, y=cty, linetype= drv)) + labs(title = "Phil's Graph")
+```
+
+4. Create a boxplot that looks at the distribution of the highway miles per gallon for each `drv` value.
+```{r}
+ggplot(data = mpg) + geom_boxplot(mapping = aes(y=hwy, x=drv))+ labs(title = "Phil's Graph")
+```
+
+## Manipulating Datasets
+
+Now that we have visualization down, we might need to subset our data or create new variables, such as transformations. We can do that via the `dplyr` package. We'll use the `flights` dataset from the `nycflights13` package to help us with this section.
+
+## Filter
+
+`filter()` allows you to pick only certain rows that follow a criteria. 
+
+```{r filter}
+filter(flights, month == 9, day == 6)
+```
+
+## Exercises
+
+1. Find all flights that had an arrival delay of two or more hours.
+```{r filter}
+filter(flights, arr_delay >=120)
+```
+
+2. Find all flights that flew into Indianapolis (`IND`) or Chicago (`ORD`)
+```{r}
+filter(flights, dest=='IND'|dest =='ORD')
+```
+
+## Arrange
+
+`arrange()` allows you to reorder the rows according to a specified variable.
+
+```{r arrange}
+arrange(flights, year, month, day, desc(dep_delay))
+```
+
+## Select
+
+`select()` allows you to select only the variables you are interested in, thereby shrinking the dataset you are working with.
+
+```{r select}
+select(flights, year:day)
+```
+
+##
+
+You can also use some **helper** functions with these commands. For example, if you simply want to reorganize the variables to have the most relevant variables first but don't want to lose any variables, then you can use `everything()`.
+
+```{r helper}
+select(flights, dep_time, arr_time, everything())
+```
+
+## Mutate
+
+`mutate()` allows you to create new variables in your dataset. To demonstrate this, let's reduce our dataset:
+
+```{r reduce}
+flights_sml <- select(flights, year:day, ends_with("delay"), distance, air_time)
+```
+
+## 
+
+Let's say we wanted to calculate the speed of our airplanes. Speed is not a variable in the dataset, but we can use distance and air_time to calculate speed:
+
+```{r mutate}
+mutate(flights_sml, speed = distance/air_time*60)
+```
+
+## Exercises
+
+1. Create a new variable called `log_air_time` that is the logarithm of the air time variable.
+```{r}
+log_air_time <- mutate(flights, log(air_time))
+view(log_air_time)
+
+```
+2. Create the new variable `speed` from before and `log_air_time` from 1. at the same time.
+```{r}
+speed <- mutate(log_air_time, speed = distance/air_time*10 )
+view(speed)
+```
+
+## Summaries
+
+Sometimes, it'll be useful to get some summary statistics about individual groups in our dataset. To do this, we'll need both `summarize()` and `group_by()`.
+
+```{r summarize}
+by_day <- group_by(flights, year, month, day)
+summarize(by_day, delay = mean(dep_delay, na.rm = TRUE))
+```
+
+## Piping
+
+This brings up a cleaner way to produce this output: using the pipe (`%>%`)
+Remember that this piping takes the preceding value and places it in the first slot of the subsequent command.
+
+```{r pipe}
+flights %>% 
+  group_by(year, month, day) %>% 
+  summarize(delay = mean(dep_delay, na.rm = TRUE))
+```
+
+## Exercises
+
+1. Find the average highway miles per gallon for each type of drive (`drv`).
+```{r}
+mpg %>% 
+  group_by(drv) %>% 
+  summarise(average  = mean(hwy, na.rm = TRUE))
+```
+
+2. Find the maximum departure delay for each day.
+```{r}
+flights %>% 
+  group_by(year,month,day) %>% 
+  summarise(max_delay = max(dep_delay, na.rm= TRUE))
+```
