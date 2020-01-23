@@ -2,7 +2,7 @@
 
 STAT-361_Linear Models
 
-#Final_Project : Statistical Analysis of Insurance Coverage Against Social Status
+#Final_Project : "Statistical Analysis of Insurance Coverage Against Social Status"
 #Authors : Kevil Khadka, Jialin Xiang, Rafael Pereira
 #dataset : civil_rights.csv
 
