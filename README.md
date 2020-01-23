@@ -3,4 +3,3 @@ STAT-361
 Linear Models
 
 FALL 2019
-
