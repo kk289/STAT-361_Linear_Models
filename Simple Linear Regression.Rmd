@@ -1,0 +1,79 @@
+---
+title: "Stat 361 - Simple Linear Regression"
+author: "Dr. Weber"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(UsingR)
+library(tidyverse)
+```
+
+
+## Simple Linear Regression
+
+As a side note, this is old, clunky code: tough to read and understand what it is doing.
+
+```{r}
+freqData <- as.data.frame(table(galton$child, galton$parent))
+names(freqData) <- c("child","parent","freq")
+freqData$child <- as.numeric(as.character(freqData$child))
+freqData$parent <- as.numeric(as.character(freqData$parent))
+g <- ggplot(filter(freqData, freq > 0), aes(x = parent, y = child)) + 
+  scale_size(range = c(2,10), guide = "none") + 
+  geom_point(colour = "grey50", aes(size = freq+10)) + 
+  geom_point(aes(colour = freq, size = freq)) + 
+  scale_colour_gradient(low = "lightblue", high = "white")
+g
+```
+
+Here's cleaner code to get the frequency data. This is also an alternative to plotting the information:
+
+```{r}
+freqData2 <- galton %>% 
+  group_by(child, parent) %>% 
+  summarise(freq = n())
+g2 <- ggplot(galton, aes(x = parent, y = child)) +
+  geom_jitter()
+g3 <- ggplot(freqData2, aes(x = parent, y = child)) +
+  scale_size(range = c(2,10), guide = "none") + 
+  geom_point(colour = "grey50", aes(size = freq+10)) + 
+  geom_point(aes(colour = freq, size = freq)) + 
+  scale_colour_gradient(low = "lightblue", high = "white")
+g2
+g3
+```
+
+## Verify hand calculations and R calculations are the same for the coefficients
+```{r}
+y <- galton$child
+x <- galton$parent
+beta1 <- cor(y,x) * sd(y)/sd(x)
+beta0 <- mean(y) - beta1* mean(x)
+coef(lm(y ~ x))
+c(beta0, beta1)
+```
+
+## Regression through the origin yields the same slope as linear regression if you mean center the y's and x's
+```{r}
+yc <- y - mean(y)
+xc <- x - mean(x)
+beta1 <- sum(xc * yc)/sum(xc^2)
+c(beta1, coef(lm(y ~ x))[2])
+#get linear model without intercept
+lm(yc ~ xc - 1)
+```
+
+## Normalizing the data results in the slope being the correlation
+```{r}
+yn <- (y - mean(y))/sd(y)
+xn <- (x - mean(x))/sd(x)
+c(sd(yn),sd(xn)) #check to make sure sd is 1
+c(cor(y,x), cor(yn,xn), coef(lm(yn ~ xn))[2])
+```
+
+## Add the regression line with the confidence level
+```{r}
+g + geom_smooth(method = "lm", formula = y ~ x)
+```
