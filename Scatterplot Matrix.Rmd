@@ -1,0 +1,37 @@
+---
+title: "Scatterplot Matrix"
+author: "Dr. Weber"
+date: "October 4, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(GGally)
+library(Sleuth3)
+```
+
+## GGally Package
+
+We will need an extension of the ggplot2 package called GGally. Now, we can use `ggpairs()` to create our scatterplot matrix. The advantage of this package is that it allows us to compare both numerical and categorical variables.
+
+```{r}
+mammals <- case0902
+ggpairs(data = mammals, columns = 2:5)
+```
+
+Now, let's transform the data and look at the plots.
+
+```{r}
+mammals_trans <- log(mammals[,2:5])
+ggpairs(data = mammals_trans)
+ggplot2::ggsave("Notes_9_scattermatrix.png",path = "Figures")
+```
+
+Transforming the data allows us to see a pronounced relationship between each of our variables and our response. It also shows us that our explanatory variables are related to each other. This suggests we should fit a regression model for the log of brain weight on the log of each of these explanatory variables. 
+
+```{r}
+fit <- lm(Brain ~ Body + Gestation + Litter, data = mammals_trans)
+summary(fit)
+```
