@@ -1,0 +1,94 @@
+---
+title: "MLR Coefficient Interpretation"
+author: "Dr. Weber"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Interpreting MLR Coefficient
+
+Let's manufacture a data set to illustrate how in multiple linear regression when we want to interpret a predictor coefficient (i.e., $\beta_1$), we extract the effects of all the other predictors from both the responses and the predictor variable ($Y$ and $X_1$). 
+
+```{r}
+x1 <- rnorm(100)
+x2 <- rnorm(100)
+x3 <- rnorm(100)
+y <- 1 + x1 + x2 + x3 + rnorm(100, sd = .1)
+```
+
+Now, we want to extract the effects of the intercept, `x2`, and `x3` from both the response `y` and the predictor `x1`. This is exactly the residuals after fitting `y` or `x1` to `x2` and `x3` with an intercept.
+
+```{r}
+ey <- resid(lm(y ~ x2 + x3))
+ex <- resid(lm(x1 ~ x2 + x3))
+```
+
+These residuals are the variation in $Y$ and $X_1$, respectively, that is not explained by $X_2$ or $X_3$. So in a sense, we have fixed $X_2$ and $X_3$. Let's look at what the coefficient on $X_1$ will be when we fit the regression through the origin of these residuals of $Y$ on the residuals of $X_1$.
+
+```{r}
+coef(lm(ey ~ ex - 1))
+```
+
+Compare this to the $X_1$ coefficient when we fit the multiple linear regression model.
+
+```{r}
+coef(lm(y ~ x1 + x2 + x3))
+```
+
+## Significance Depends on Included Variables
+
+The interpretation of the coefficients and the significance of their values depends greatly on the other predictors that are included in the model. Let's manufacture an example. First, let's get the data.
+
+```{r}
+x2 <- 1:100
+x1 <- .01*x2 + runif(100, -.1, .1)
+y <- -x1 + x2 + rnorm(100, sd = .01)
+```
+
+Next, let's fit two models: one on `x1` and one on `x1` and `x2`. Notice the difference in the coefficients of `x1`. Why are they so different?
+
+```{r}
+coef(lm(y ~ x1))
+coef(lm(y ~ x1 + x2))
+```
+
+In the first model, we're plagued by a confounding variable. But when we fit the correct model, this adjusts itself because the regression is taking `x1` and removing the effect of `x2`. Specifically, the regression will remove the "$.01*x2$" part of `x1` and leave the noise, which is the part of `x1` that is unrelated to `x2`.
+
+Let's try seeing this through the plots. First, we'll create a data frame that includes each of our variables, as well as the residuals of `y` and `x1` after we remove the effects of `x2`.
+
+```{r}
+data <- data.frame(y = y, 
+                   x1 = x1,
+                   x2 = x2,
+                   ey = resid(lm(y ~ x2)),
+                   ex1 = resid(lm(x1 ~ x2)))
+```
+
+Now, let's plot `y` vs. `x1` with `x2` being displayed as a color aesthetic. 
+
+```{r}
+ggplot(data, aes(x = x1, y = y, color = x2)) +
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE, color = "black", size = .2)
+```
+
+This graph tells us a lot. First, a linear relationship is appropriate and clear; As `x1` goes up so does `y`. As `x2` goes up so does `y`. But we also see that as `x1` goes up so does `x2`. This also shows the confounding that is happening.
+
+Now let's plot the residuals we calculated and see what they can show us. Remember, these are the residuals of taking `x2` out of `y` and `x1`.
+
+```{r}
+ggplot(data, aes(x = ex1, y = ey, color = x2)) +
+  geom_point() + 
+  geom_smooth(method = lm, se = FALSE, color = "black")
+```
+
+This is a plot that describes the relationship of `x1` with `y` when we remove the effects of `x2`. So this slope should be our coefficient of `x1` in our multiple linear regression model. Also notice that now `x2` is not related to `ey` or `ex1`. In other words, we have removed its influence and effect on these variables. 
+
+*Note of Caution* - This does not mean you should throw all of your variables into the regression model. That is just as problematic as not including enough variables. The selection of variables will be covered in Chapter 12.
+
+
+
