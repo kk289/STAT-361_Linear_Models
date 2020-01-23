@@ -3,7 +3,9 @@
 
 Name: Hollywood Dataset,
 Professor : Dr. Darrin Weber,
-Authors : Kevil Khadka, Santosh Jnawali, Rizon Giri,
+Authors : Kevil Khadka, Santosh Jnawali, Rizon Giri
+
+Dataset: HollywoodMovies2011
 
 #Abstract
 This study works on a dataset which includes information of the Hollywood movies of the year
@@ -15,3 +17,5 @@ as budget, genre and the opening weekend gross of the movie have any influence o
 the main goal of the study is to test the relationship between these three independent variables and dependent/response 
 variable, which is world gross collection, and then to build a multiple linear regression model 
 which explains the influence of the independent variables on the response variable.
+
+
