@@ -6,3 +6,5 @@ Projects Listed:
 - HollywoodMovies 2011 (author: Kevil khadka, Santosh Jnawali, Rizon Giri) 
 - R Review by Dr.Weber
 - Simple Linear Regression by Dr.Weber
+- MLR Coefficient Interpretation by Dr.Weber
+- Scatterplot Matrix by Dr.Weber
