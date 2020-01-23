@@ -1,0 +1,414 @@
+---
+title: "Project 1"
+author: "Santosh Jnawali, Rizon Giri, Kevil Khadka"
+date: "10/28/2019"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(GGally)
+library(tidyverse)
+library(dplyr)
+library(knitr)
+```
+
+# Abstract 
+ 
+This study works on a dataset which includes information of the Hollywood movies of the year 2011 and focuses on some of the variables which affect a movie's success. More specifically, the purpose of the analysis is to build a multiple linear regression model that helps to explain if the variables such as budget, genre and the opening weekend gross of the movie have any influence on the box office success of the movie. 
+
+We found that, the success of movies can be predcited with the information of bugdet and OpeningWeekend. We found that there is a significant relationship between world gross collection and the predictor variables, Budget and OpeningWeeekend.The final resulting multiple regression model uses Budget and logged OpeningWeekend to predict logged worldGross, which was found to be statistically significant. Genre had weak influence in our model as the multiple linear regression model using budget, OpeningWeekend and Genre was able to explain same proportion of the variablity which our reduced model using just Budget and OpeningWeekend explains. And this is why we chose the reduced model as our final model.
+
+
+
+
+#Introduction
+Movies have a significant impact in the modern society and culture as they have been one of the important source of entertainment in our lives. Movies make us experience the moments and emotions that are out of our daily lives, they allow us to see the world in an animated form, whereas they allow us to experience the horror too, they make us realize what love is even if we haven't experienced one, they make us travel to the space and explore things and these are some of the reasons people have been spending money to buy movie tickets and thus, affecting the economy of the movie industry. In the recent times, we have been witnessing that the movie's market, mainly in the US, have been growing in a large scale as the movies nowdays are making more money than they had ever made. Moreover, the US is the third largest film market in the world in terms of tickets sold per year and it is expected that the film entertainment business will generate 35.3 billion U.S. dollars in revenue by 2019(Statista). According to Statista, 'Average:Infinity War' was the highest grossing movie in the world in 2018, reaching box office revenue of almost 2.05 billion U.S. dollars. These huge figures of the movies also made us interested in knowing about how movies do very well in terms of success and box office, and to check out the influencing factors if there is any.
+In this study, we wanted to learn if there are some factors that have been affecting a movie's box office success, which in our case is world gross income or earnings, and then analyze those factors to build a model including those factor variables. The independent variables in our analysis are the production budget, genre of the movie and opening weekend gross. Thus, the main goal of the study is to test the relationship between these three independent variables and dependent/response variable, which is world gross collection, and then to build a multiple linear regression model which explains the influence of the independent variables on the response variable.
+
+
+
+
+
+
+
+
+
+
+#Dataset
+
+HollywoodMovies2011 dataset contains information of 136 movies released from Hollywood in the year 2011. The dataset has 14 variables, and which are described below:
+Movie: Title of movie
+LeadStudio: Studio that released the movie
+RottenTomatoes: Rotten Tomatoes rating (reviewers)
+AudienceScore: Audience rating (via Rotten Tomatoes)
+Story: General theme - one of 21 themes
+Genre: Type of movie- Action, Adventure, Animation, Comedy, Drama, Fantasy, Horror, Romance, or Thriller
+TheatersOpenWeek: Number of screens for opening weekend
+BOAverageOpenWeek: Average box office income per theater - opening weekend
+DomesticGross: Gross income for domestic viewers (in millions)
+ForeignGross: Gross income for foreign viewers (in millions)
+WorldGross: Gross income for all viewers (in millions)
+Budget: Production budge (in millions)
+Profitability: WorldGross/Budget
+OpeningWeekend: Opening weekend gross (in millions)
+
+Source: McCandless, D., "Most Profitable Hollywood Movies,", from "Information is Beautiful", davidmccandless.com, accessed January 2012.
+
+
+  Our dataset had 14 variables for 136 movies and since we only wanted to know the most significant predictor variables which could significantly predict the world gross of the movies, we had to eliminate some of the variables which was of least importance to our model and choose only significant predictors. In order to have a general idea of which variables to select in the model, we first ran a scatterplot matrix for all the variables available in the dataset. We found that WorldGross can be studied with the variable OpeningWeekend,Budget and type of movies(Genre).So,we extracted the needed information from the dataset and created a new dataset using the variables. Also on top of that, in the process of eliminating unrelatable variables from our dataset, we first excluded some of the variables which we felt were not needed or had less effect such as LeadStudio, Domestic gross, foreign gross and profitability. Among the other variables, we then selected the best three predictor variables for our response variable WorldGross, and which are, Budget, Genre and OpeningWeekend.
+
+
+
+
+
+
+
+
+
+##Visualization
+Looking at matrix of scatterplot and taking out the important variable for prediction
+```{r}
+hollywood<- Lock5Data::HollywoodMovies2011
+```
+
+```{r}
+project<- hollywood %>%
+        dplyr::select(Genre,Budget,OpeningWeekend,WorldGross)
+```
+*Scatterplot Matrix*
+```{r}
+hollywood1<-project%>%
+     filter(Genre %in% c("Comedy","Action","Drama"))
+  newdata<-na.omit(hollywood1) %>%
+    arrange()
+  ggpairs(data=newdata,columns = c(4,3,2))
+```
+Looking at the scatterplot matrix,it seems OpeningWeekend and Budget can explain the Worldgross after fitting a linear model.
+
+*Plot of WorldGross vs Budget*
+```{r}
+ggplot(data=newdata,aes(Budget,WorldGross))+
+  geom_point(aes(color=Genre))+
+  geom_smooth(method = "lm")
+```
+The scatterplot of WorldGross and Budget shows a pretty linear relationship between the variables.
+
+*Plot of WorldGross vs OpeningWeekend*
+```{r}
+ggplot(data=newdata,aes(OpeningWeekend,WorldGross))+
+  geom_point(aes(color=Genre))+
+  geom_smooth(method = "lm")
+```
+The scatterplot of OpeningWeekend and Worldgross also seems to be linear.
+
+*Plot of WorldGross,OpeningWeekened,and Budget *
+```{r}
+ggplot(data =newdata, mapping = aes(x = OpeningWeekend , y = WorldGross, size=Budget)) +
+  geom_point(mapping = aes(color = Genre))
+```
+From the combined plot , we can see that higher OpeningWeekend earnings had higher production budget along with higher WorldGross collection. So, the combination of the plot, gives us idea that, there is linear realtionship between these variable.
+
+#Preliminary Analysis
+After fitting several simple linear models with individual variables, Opening Weekend and Budget, checking assumptions and dealing with outliers (Appendix), We concluded that we should go with the multiple regression model. 
+Thus,we decided to fit the multiple regression. And to begin, we regressed WorldGross on Budget and OpeningWeekend.
+
+Fitting multiple linear regression and Summary of the model :
+```{r}
+fit4<- lm((WorldGross)~(Budget)+(OpeningWeekend),data=newdata)
+summary(fit4)
+```
+
+
+*Diagnostic Plots*
+```{r}
+ggplot(data = fit4) +
+  geom_point(mapping = aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = mean(fit4$residuals))
+plot(fit4,2)
+hist(fit4$residuals)
+```
+Looking at the residual plot, There seems to be some fanning. The qqplot seems pretty good and the histogram is fairly normal. In order to deal with our assumption, lets fit our model with log transformation. 
+
+After trying several log transformation of variables, we ended up transforming Variables, WorldGross and OpeningWeekend as it fits our assumptions. 
+Summary of the model "fit5" :
+```{r}
+fit5<- lm(log(WorldGross)~(Budget)+log(OpeningWeekend),data=newdata)
+summary(fit5)
+```
+*Diagnostic plot *
+```{r}
+ggplot(data = fit5) +
+  geom_point(mapping = aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = mean(fit5$residuals))
+plot(fit5,2)
+hist(fit5$residuals)
+```
+Looking at these diagnostic plots after transforming the data, we can see the residual plot seems pretty good, the data points are held in the middle of the qqplot and histogram of the residuals seems pretty normal too. Therefore we can conclude that our regressions model fits the assumptions and can be used for further analysis.
+
+However, we have not included our categorical variable Genre in that model, so we again want to fit a model using all the available variable which includes additional variable 'Genre'.
+
+Summary of the Model with Genre:
+```{r}
+fit6<- lm(log(WorldGross)~(Budget)+log(OpeningWeekend)+factor(Genre),data=newdata)
+summary(fit6)
+```
+*Diagnostic Plot *
+```{r}
+ggplot(data = fit6) +
+  geom_point(mapping = aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = mean(fit6$residuals))
+plot(fit6,2)
+hist(fit6$residuals)
+```
+Looking at these diagnostic plots after transforming the data, we can see the residual plot seems pretty good , the data points are held in the middle of the qqplot and histogram of the residuals seems pretty normal too. Therefore its safe to conclude that this regression model also fits the assumptions and can be used for further analysis.
+
+
+
+#Analysis and Refining Model
+  Based on our question of interest, we want to predict the WorldGross of a movie based on the different available variables. We have fitted several regression using those variable. We want to make our regression as simpler as we can , so we are now comparing our reduced model "fit5" and full model "fit6" to know with which model we should proceed. 
+
+Comparison of Full and reduced model 
+Our hypothesis are stated below,
+H_0 : There is no lack of fit
+H_a : There is lack of fit
+
+```{r}
+anova(fit5,fit6)
+```
+The comparison of anova shows the p-value greater than 0.05 ,There is not sufficient evidence to reject our null hypothesis. This means there is no lack of fit, so we can proceed with our simple regression of model fit5 for our analysis. Thus, our model with Budget and log(Openingweekend) can explain as much as the model created with additional variable Genre.There is no significant effect of Genre found in the linear model, so we can use model fit5 for our analysis and use it for the prediction. 
+
+
+```{r}
+summary(fit5)
+```
+Our Final regression model is given by 
+\begin{align}
+\mu\{\text{log(WorldGross)}|\text{Budget},\text{log(OpeningWeekend)}\}=2.283746 +0.007003* Budget +0.658244 *log(OpeningWeekend)
+\end{align}
+
+#Conclusion
+   After conducting the complete analysis of the data, we reached to our conclusion that, our model "fit5" in which response variable WorldGross and predictor variable OpeningWeekend are logged, is better in predicitng the financial success of the movies, based upon the variables Budget and OpeningWeekend. In our final model "fit5", predictor variables, log of OpeningWeekend and Budget explained about 81.24 % variability in reponse variable, log of WorldGross. Over the time of the analysis, we realized that there were other variables in the dataset which were excluded during the analysis. There might have been some kind of interaction effect between those variables which we were not able to conduct within the given time frame of project. We would have came up with better model if we were able to do so. However, in the conducted analysis, we found model "fit5" better in predicting our response.  
+
+
+
+
+##Appendix
+**Variable selection matrix scatterplot.**
+We started our analysis fitting very simple regression model to get an idea of what's happening in the data,
+```{r}
+## Looking at the matrix of all possible scatterplots of the variable to aid the Variable selection process.
+ggpairs(data=hollywood,columns = c(3,4,7:14))
+```
+*Dataset*
+**Visualization**
+Looking at matrix of scatterplot and taking out the important varible for prediction
+```{r}
+hollywood<- Lock5Data::HollywoodMovies2011
+```
+
+```{r}
+project<- hollywood %>%
+        dplyr::select(Genre,Budget,OpeningWeekend,WorldGross)
+```
+*Scatterplot Matrix*
+```{r}
+##Creating a matrix of scatterplot of the variables.
+hollywood1<-project%>%
+     filter(Genre %in% c("Comedy","Action","Drama"))
+  newdata<-na.omit(hollywood1) %>%
+    arrange()
+  ggpairs(data=newdata,columns = c(4,3,2))
+```
+
+
+```{r}
+##Creating Scatterplot of WorldGross vs Budget
+ggplot(data=newdata,aes(Budget,WorldGross))+
+  geom_point(aes(color=Genre))+
+  geom_smooth(method = "lm")
+```
+
+```{r}
+##Creating Scatterplot of WorldGross vs OpeningWeekend 
+ggplot(data=newdata,aes(OpeningWeekend,WorldGross))+
+  geom_point(aes(color=Genre))+
+  geom_smooth(method = "lm")
+```
+
+```{r}
+##Visualising the scatterplot of WorldGross,OpeningWeekend,and Budget in a same plot
+ggplot(data =newdata, mapping = aes(x = OpeningWeekend , y = WorldGross, size=Budget)) +
+  geom_point(mapping = aes(color = Genre))
+```
+
+**Preliminary Analysis**
+Fitting several linear models,
+```{r}
+##Regressing WorldGross on OpeningWeekend
+
+fit1<- lm(WorldGross~OpeningWeekend,data=newdata)
+summary(fit1)
+```
+Diagnostic plots,
+```{r}
+##looking at the diagnostic plots in order to check our assumptions of fitting a linear model
+plot(fit1)
+```
+```{r}
+hist(fit1$residuals)
+```
+There seems to be non constant variance,nearly normal residual plot but with possible outlier, so we want to fit a linear model by removing the possible outliers to see whether the model fits the assumptions of linear model.
+
+The possible ouliers are in the position of 7,11,and 12.
+
+```{r}
+#Removing the possible outliers and creating a new dataset
+rem_out<- newdata[-c(7,11,12),] %>%
+  arrange()
+```
+
+
+```{r}
+##Fitting a model after removing the outlier 
+fit_rem<- lm((WorldGross)~(OpeningWeekend),data=rem_out)
+summary(fit_rem)
+```
+
+```{r}
+#Looking the diagnostic plot after removing the outlier to see whether it meets the assumptions or not.
+plot(fit_rem)
+hist(fit_rem$residuals)
+```
+
+
+
+Looking at the summary with oulier and without outlier,
+
+```{r}
+##Looking at the differences between these models
+summary(fit1)
+summary(fit_rem)
+```
+
+The one without outliers seems to fit our assumptions, so, it could be considered for simple linear model
+
+However, we have several others variable which might have effect on WorldGross.
+so,
+
+Taking Budget into consideration:
+
+```{r}
+##Regressing WorldGross on Budget
+fit2<- lm((WorldGross)~(Budget),data=newdata)
+summary(fit2)
+```
+
+```{r}
+##Looking diagnostic plots.
+ggplot(data = fit2) +
+  geom_point(mapping = aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = mean(fit2$residuals))
+plot(fit2, 2)
+hist(fit2$residuals)
+```
+
+There seems to be some outlier,
+Checking without outlier in the model
+
+```{r}
+##Fitting without outlier
+rem_out2<- newdata[-c(7,11,52),]
+fit3<- lm(WorldGross~Budget,data=rem_out2)
+summary(fit3)
+ggplot(data = fit3) +
+  geom_point(mapping = aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = mean(fit3$residuals))
+plot(fit3,2)
+hist(fit3$residuals)
+
+```
+
+
+```{r}
+##fitting a multiple regression model
+fit4<- lm((WorldGross)~(Budget)+(OpeningWeekend),data=newdata)
+summary(fit4)
+```
+
+
+
+```{r}
+##creating the diagnostic plots
+ggplot(data = fit4) +
+  geom_point(mapping = aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = mean(fit4$residuals))
+plot(fit4,2)
+hist(fit4$residuals)
+```
+
+
+```{r}
+##Transforming the varibles in order to fit the assumptions
+fit5<- lm(log(WorldGross)~(Budget)+log(OpeningWeekend),data=newdata)
+summary(fit5)
+```
+
+```{r}
+##Creating diagnostic plot for assumptions check
+ggplot(data = fit5) +
+  geom_point(mapping = aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = mean(fit5$residuals))
+plot(fit5,2)
+hist(fit5$residuals)
+```
+
+```{r}
+##fitting a new model with another variable
+fit6<- lm(log(WorldGross)~(Budget)+log(OpeningWeekend)+factor(Genre),data=newdata)
+summary(fit6)
+```
+*Diagnostic Plot *
+```{r}
+##creating diagnostic plot of the model 
+ggplot(data = fit6) +
+  geom_point(mapping = aes(x = .fitted, y = .resid)) +
+  geom_hline(yintercept = mean(fit6$residuals))
+plot(fit6,2)
+hist(fit6$residuals)
+```
+
+**Analysis and refining model**
+```{r}
+##Comparing the linear models
+anova(fit5,fit6)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
