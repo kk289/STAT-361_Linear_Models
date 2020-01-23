@@ -163,7 +163,7 @@ summary(fit5)
 ```
 - Our Final regression model is given by 
 
- \mu\{{log(WorldGross)}|{Budget},{log(OpeningWeekend)}} 
+ \mu\{{log(WorldGross)}|{Budget},{log(OpeningWeekend)}}}
 = 2.283746 +0.007003 * Budget + 0.658244 * log(OpeningWeekend)
 
 
